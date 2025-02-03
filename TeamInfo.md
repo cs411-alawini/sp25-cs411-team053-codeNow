@@ -12,8 +12,8 @@
 | Member1     |   malra2@illinois.edu  |
 | Member2     |     Yongrin Park       |
 | Member2     |  yongrin2@illinois.edu |
-| Member3     |      Sneha Dhital      |
-| Member3     |  sdhital3@illinois.edu |
+| Member3     |      ...               |
+| Member3     |  .....@illinois.edu    |
 
 ## Project Information
 
