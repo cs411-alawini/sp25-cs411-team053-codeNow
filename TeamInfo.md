@@ -12,17 +12,16 @@
 | Member1     |   malra2@illinois.edu  |
 | Member2     |     Yongrin Park       |
 | Member2     |  yongrin2@illinois.edu |
-| Member3     |      Nathan Arango     |
-| Member3     |  narango2illinois.edu  |
+
 
 ## Project Information
 
 |   Info      |        Description     |
 | ----------- | ---------------------- |
-|  Title      |       ProjectTitle     |
-| System URL  |      link_to_system    |
-| Video Link  |      link_to_video     |
+|  Title      |     Career Compass     |
+| System URL  |                        |
+| Video Link  |                        |
 
 ## Project Summary
 
-This is a summary of the project!
+Career Compass is a job market insights database designed to help job seekers, students, and professionals explore job trends, salary data, and hiring demands. By aggregating real-world job postings and labor statistics, this system enables users to make informed career decisions based on industry trends, salary expectations, and geographic job availability.
