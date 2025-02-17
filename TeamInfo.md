@@ -12,6 +12,8 @@
 | Member1     |   malra2@illinois.edu  |
 | Member2     |     Yongrin Park       |
 | Member2     |  yongrin2@illinois.edu |
+| Member3     |      Owen Siemons      |
+| Member3     |  siemons2@illinois.edu |
 
 
 ## Project Information
