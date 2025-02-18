@@ -1,1 +1,66 @@
+Application Name: Career Compass
+
+Summary
+Career Compass is a job market insights platform designed to help job seekers, students, and professionals make informed career decisions using real-time data. It aggregates job postings from platforms like Glassdoor and labor statistics from the U.S. Bureau of Labor Statistics (BLS) to offer users valuable insights into salary trends, hiring demands, and industry growth.
+Users can explore job opportunities based on location, industry, and salary, while also gaining a better understanding of in-demand skills and workforce trends. The platform provides salary comparisons across different roles and regions, enabling users to set realistic career expectations.
+Through search filters and interactive visualizations, Career Compass simplifies job market research and allows users to stay updated on industry shifts. Employers and recruiters can also utilize the platform to track hiring trends and refine their recruitment strategies based on current market data. 
+
+
+Description
+
+Career Compass is a web-based application designed to provide users with comprehensive insights into the job market. The platform aims to bridge the information gap between job seekers and the labor market by consolidating data from multiple sources into a single, accessible interface. The application will collect real-time job postings from platforms like Glassdoor and combine this with employment statistics and salary data from the U.S. Bureau of Labor Statistics (BLS). This integrated approach allows users to gain a detailed understanding of hiring demand, salary expectations, and industry growth trends.
+Career Compass is not just a job board—it is a data-driven career exploration tool. Users can search and compare jobs based on industry, location, and salary while also accessing visual insights into workforce trends. By offering up-to-date labor market information alongside interactive tools, the platform helps users make informed career decisions and better navigate their professional journeys.
+
+
+
+
+Creative Component
+To enhance the user experience and provide deeper insights, Career Compass will integrate interactive data visualizations and trend prediction analytics as a creative component. Using libraries like D3.js, Plotly, or Chart.js, the platform will display salary distributions, job availability heatmaps, and industry growth patterns in an intuitive, visual format.
+Additionally, the system will leverage machine learning techniques (e.g., linear regression or time series analysis) to forecast future job market trends based on historical data. This predictive analysis will help users anticipate which industries and roles are likely to grow, giving them a competitive edge in career planning.
+These features go beyond basic data display by offering dynamic visual tools and data-driven forecasts, improving the platform's usability and making complex labor data accessible and actionable.
+
+
+Usefulness
+Career Compass serves a diverse user base:
+Job Seekers & Students: Discover career paths, compare salaries, and identify high-demand industries.
+Professionals: Stay informed on market shifts and salary benchmarks.
+Employers & Recruiters: Analyze hiring trends and refine recruitment strategies.
+Key Functions:  Search & Filter job listings by keyword, location, salary, and industry.
+ View salary insights across job roles and regions.
+ Access industry demand trends with real-time data.
+ Explore visual analytics dashboards (e.g., salary heatmaps, industry growth graphs).
+ Get trend predictions for emerging skills and sectors.
+Existing platforms like Glassdoor and Indeed offer similar services, but Career Compass stands out by:
+Combining real-time job postings with government labor data.
+Providing visual trend analysis and future market predictions.
+Offering a data-driven approach to career planning, beyond simple job searches.
+
+Realness
+Career Compass relies on two primary data sources:
+Glassdoor API
+Data Provided: Job postings, employer details, salary estimates, company reviews.
+Format: JSON
+Coverage: Global job data across industries.
+U.S. Bureau of Labor Statistics (BLS)
+Data Provided: Historical salary data, employment trends, industry growth rates.
+Format: CSV / JSON
+Coverage: U.S. labor market.
+Detailed Functionality
+Career Compass will offer full CRUD operations and search features for managing job and labor market data:
+ Create: Job postings, salary data, and hiring trends are retrieved from external APIs and stored in our database for fast querying and historical analysis.
+Read: Users can browse and access job listings, salary insights, and industry growth reports.
+Update: The system periodically connects with APIs to update job postings, salary, and industry trends to ensure there are no discrepancies.
+Delete: Outdated job listings and irrelevant records are removed or archived to maintain a clean database.
+Search & Filters: Users can search for jobs using keywords, industry, or location and apply filters such as salary range, job type, and company size to refine their search.
+User Interaction Flow:
+Enter job preferences (e.g., role, location, salary range).
+View job listings and salary insights tailored to inputs.
+Explore interactive visual reports (e.g., salary graphs, demand heatmaps).
+Save preferred searches or export reports (future enhancement).
+
+
+UI Mockup
+
+Work Distribution
+We will be working with a 2 frontend and 2 backend weekly rotation. The initial beginning will be Moe and Yongrin on the backend and Matt and Owen on the frontend. Then, Moe and Yongrin will go to frontend the next week with Matt and Owen on the backend, and the rotation will continue each week in this way. 
 
