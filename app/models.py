@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 
 class Company(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=1000)
     size = models.CharField(max_length=100)
     profile = models.TextField(blank=True)
     contact_person = models.CharField(max_length=255, blank=True)
@@ -22,13 +22,13 @@ class Location(models.Model):
         return f"{self.city}, {self.country}"
     
 class Skill(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=500)
 
     def __str__(self):
         return self.name
 
 class JobPortal(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=500)
 
     def __str__(self):
         return self.name
@@ -36,9 +36,9 @@ class JobPortal(models.Model):
     
 class JobPosting(models.Model):
     job_id = models.BigIntegerField(unique=True)
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=1000)
     role = models.CharField(max_length=255)
-    description = models.TextField()
+    description = models.TextField(blank=True)
     responsibilities = models.TextField(blank=True)
     qualifications = models.CharField(max_length=255, blank=True)
     experience = models.CharField(max_length=255, blank=True)
