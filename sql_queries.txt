@@ -1,0 +1,79 @@
+//Companies Posting More Jobs Than Average
+SELECT c.id AS company_id,
+       c.name AS company_name,
+       COUNT(jp.id) AS total_jobs
+FROM Company AS c
+JOIN JobPosting AS jp 
+    ON jp.company_id = c.id
+GROUP BY c.id, c.name
+HAVING COUNT(jp.id) > (
+    SELECT AVG(company_job_count) 
+    FROM (
+       SELECT COUNT(*) AS company_job_count
+       FROM JobPosting
+       GROUP BY company_id
+    ) AS SubCounts
+);
+
+//Job Postings in Yemen that are Temporary AND Belong to Companies Posting More than the Average Number of Jobs
+
+SELECT jp.*
+FROM JobPosting AS jp
+JOIN Location AS loc 
+       ON jp.location_id = loc.id
+WHERE loc.country = 'Yemen'
+  AND jp.work_type = 'Temporary'
+  AND jp.company_id IN (
+      SELECT c.id
+      FROM Company AS c
+      JOIN JobPosting AS jp2 
+            ON jp2.company_id = c.id
+      GROUP BY c.id
+      HAVING COUNT(jp2.id) > (
+          SELECT AVG(company_job_count)  
+          FROM (
+              SELECT COUNT(*) AS company_job_count
+              FROM JobPosting
+              GROUP BY company_id
+          ) AS T
+      )
+  );
+
+Job Postings from ZipRecruiter in the US, Where the Location’s ZipRecruiter Post Count Exceeds the Average ZipRecruiter Post Count
+
+SELECT jp.*
+FROM JobPosting AS jp
+JOIN JobPortal AS portal
+       ON jp.job_portal_id = portal.id
+JOIN Location AS loc
+       ON jp.location_id = loc.id
+WHERE portal.name = 'ZipRecruiter'
+  AND loc.country = 'United States'
+  AND loc.id IN (
+      SELECT jpx.location_id
+      FROM JobPosting AS jpx
+      WHERE jpx.job_portal_id = portal.id
+      GROUP BY jpx.location_id
+      HAVING COUNT(*) > (
+         SELECT AVG(post_count)
+         FROM (
+            SELECT COUNT(*) AS post_count
+            FROM JobPosting
+            WHERE job_portal_id = portal.id
+            GROUP BY location_id
+         ) AS T
+      )
+  );
+
+//Companies With No Recent Posts: 
+
+SELECT c.id AS company_id,
+       c.name AS company_name
+FROM Company AS c
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM JobPosting AS jp
+    WHERE jp.company_id = c.id
+      AND jp.posting_date >= (CURRENT_DATE - INTERVAL '30 DAY') //this may error out
+
+);
