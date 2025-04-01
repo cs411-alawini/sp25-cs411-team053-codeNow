@@ -6,6 +6,12 @@ from tqdm import tqdm # for a progress bar so I can see the
 
 BATCH_SIZE = 100 # create a batch size for uploading to GCP
 
+import re
+
+def split_skills_by_capital(text):
+    return re.findall(r'(?:[A-Z][a-z]+(?: [a-z]+)*)', text or '')
+
+
 class Command(BaseCommand):
     help = "Import jobs from job_sample.csv into the database"
 
@@ -20,7 +26,7 @@ class Command(BaseCommand):
         with open('app/job_sample.csv', encoding='utf-8-sig') as file:
             reader = csv.DictReader(file)
             
-            for i, row in tqdm(enumerate(reader), total=2000): #total set to 1000 
+            for i, row in tqdm(enumerate(reader), total=2000): #total set to 2000
                 # Validate Job Id
                 try:
                     current_job_id = int(row['Job Id']) 
@@ -49,7 +55,7 @@ class Command(BaseCommand):
                     continue  
                 
                 # Always create new Location (Allow duplicate location entries)
-                location = Location.objects.create(
+                location, _ = Location.objects.get_or_create(
                     city=row['location'].strip(),
                     country=row['Country'].strip(),
                     latitude=float(row.get('latitude', 0.0)),
@@ -57,19 +63,20 @@ class Command(BaseCommand):
                 )
                 
                 # Always create new Company (Allow duplicate company entries)
-                company = Company.objects.create(
+                company, _ = Company.objects.get_or_create(
                     name=row['Company'].strip(),
-                    size=row.get('Company Size', '').strip(),
-                    profile=row.get('Company Profile', '').strip(),
-                    contact_person=row.get('Contact Person', '').strip(),
-                    contact_info=row.get('Contact', '').strip()
+                    defaults={
+                        'size': row.get('Company Size', '').strip(),
+                        'profile': row.get('Company Profile', '').strip(),
+                        'contact_person': row.get('Contact Person', '').strip(),
+                        'contact_info': row.get('Contact', '').strip()
+                    }
                 )
                 
                 # Always create new Job Portal (Allow duplicate job portal entries)
                 portal = None
                 if row.get('Job Portal'):
-                    portal = JobPortal.objects.create(name=row['Job Portal'].strip())
-                
+                    portal, _ = JobPortal.objects.get_or_create(name=row['Job Portal'].strip())
                 # Create the Job Posting (unsaved for performance with batching)
                 job_posting = JobPosting(
                     job_id=current_job_id,
@@ -90,28 +97,35 @@ class Command(BaseCommand):
                 )
                 job_posting_list.append(job_posting)
                 
-                # Store skills for this job
-                skills = [s.strip() for s in row.get('skills', '').split(',') if s.strip()]
+                skills = split_skills_by_capital(row.get('skills', ''))
                 job_skills_map[current_job_id] = skills
+                if i < 50:  # Only for first few entries
+                    print(f"Parsed skills at row {i+1}: {skills}")
 
                 # Batch insert Job Postings
                 if len(job_posting_list) >= BATCH_SIZE:
-                    JobPosting.objects.bulk_create(job_posting_list)
+                    for job in job_posting_list:
+                        job.save()
+
+                        # Link skills right after saving the job
+                        skills = job_skills_map.get(job.job_id, [])
+                        for skill_name in skills:
+                            skill_name = skill_name.strip()
+                            if skill_name:
+                                skill_obj, _ = Skill.objects.get_or_create(name=skill_name)
+                                job.skills.add(skill_obj)
+
                     job_posting_list.clear()
             
             # Insert any remaining Job Postings
             if job_posting_list:
-                JobPosting.objects.bulk_create(job_posting_list)
-            
-        
-        # Second Pass: Assign Skills (Many-to-Many)
-        for job_id, skill_names in tqdm(job_skills_map.items(), desc="Assigning Skills"):
-            try:
-                job = JobPosting.objects.get(job_id=job_id)
-            except JobPosting.DoesNotExist:
-                continue
-            for skill_name in skill_names:
-                skill_obj, _ = Skill.objects.get_or_create(name=skill_name)
-                job.skills.add(skill_obj)
-        
+                for job in job_posting_list:
+                    job.save()
+
+                    skills = job_skills_map.get(job.job_id, [])
+                    for skill_name in skills:
+                        skill_name = skill_name.strip()
+                        if skill_name:
+                            skill_obj, _ = Skill.objects.get_or_create(name=skill_name)
+                            job.skills.add(skill_obj)
 
