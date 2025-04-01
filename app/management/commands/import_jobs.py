@@ -54,7 +54,7 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.WARNING(f"Skipping row {i+1}: Invalid Job Posting Date"))
                     continue  
                 
-                # Always create new Location (Allow duplicate location entries)
+                # Create new location or use existing one
                 location, _ = Location.objects.get_or_create(
                     city=row['location'].strip(),
                     country=row['Country'].strip(),
@@ -62,7 +62,7 @@ class Command(BaseCommand):
                     longitude=float(row.get('longitude', 0.0))
                 )
                 
-                # Always create new Company (Allow duplicate company entries)
+                # Create new company or use existing one
                 company, _ = Company.objects.get_or_create(
                     name=row['Company'].strip(),
                     defaults={
@@ -73,7 +73,7 @@ class Command(BaseCommand):
                     }
                 )
                 
-                # Always create new Job Portal (Allow duplicate job portal entries)
+                # Create new job portal or use existing one
                 portal = None
                 if row.get('Job Portal'):
                     portal, _ = JobPortal.objects.get_or_create(name=row['Job Portal'].strip())
@@ -100,7 +100,7 @@ class Command(BaseCommand):
                 skills = split_skills_by_capital(row.get('skills', ''))
                 job_skills_map[current_job_id] = skills
                 if i < 50:  # Only for first few entries
-                    print(f"Parsed skills at row {i+1}: {skills}")
+                    print(f"Parsed skills at row {i+1}: {skills}") 
 
                 # Batch insert Job Postings
                 if len(job_posting_list) >= BATCH_SIZE:
