@@ -1,3 +1,3 @@
 from django.shortcuts import render
 
-# Create your views here.
+#CREATE VIEWS TO HANDLE HTTP REQUESTS AND RESPONSES

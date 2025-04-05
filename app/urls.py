@@ -7,3 +7,5 @@ urlpatterns = [
     #path('employers/', views.get_employers, name='get_employers'),  # Fetch all employers
     #path('employer/<int:employer_id>/', views.get_employer_detail, name='get_employer_detail'),  # Single employer detail
 ]
+
+#MAP URLS TO VIEWS
