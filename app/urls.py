@@ -1,6 +1,5 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
-
 urlpatterns = [
     #path('jobs/', views.get_jobs, name='get_jobs'),  # Fetch job listings
     #path('job/<int:job_id>/', views.get_job_detail, name='get_job_detail'),  # Single job detail
@@ -9,3 +8,9 @@ urlpatterns = [
 ]
 
 #MAP URLS TO VIEWS
+
+
+urlpatterns = [
+    # ... your other URL patterns ...
+    path('', include('careercompass_backend.urls')),
+]
