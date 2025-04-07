@@ -1,23 +1,23 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
 
 function App() {
+  const [skills, setSkills] = useState([]);
+
+  useEffect(() => {
+    fetch('/api/skills/')
+      .then(response => response.json())
+      .then(data => setSkills(data))
+      .catch(error => console.log(error));
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>All Skills</h1>
+      <ul>
+        {skills.map(skill => (
+          <li key={skill.id}>{skill.name}</li>
+        ))}
+      </ul>
     </div>
   );
 }

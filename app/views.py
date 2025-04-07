@@ -1,3 +1,10 @@
 from django.shortcuts import render
 
-#CREATE VIEWS TO HANDLE HTTP REQUESTS AND RESPONSES
+
+from rest_framework import generics
+from .models import Skill
+from .serializers import SkillSerializer
+
+class SkillListView(generics.ListAPIView):
+    queryset = Skill.objects.all()
+    serializer_class = SkillSerializer
