@@ -16,9 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from app.views import SkillListView
+from app.views import SkillListView, RecentJobPostingsView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/skills/', SkillListView.as_view(), name='skill-list'),
+    path('api/recent-job-postings/', RecentJobPostingsView.as_view(), name='recent-job-postings'),
 ]

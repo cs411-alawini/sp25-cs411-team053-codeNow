@@ -7,34 +7,40 @@ import UserPrefCareers from './components/CareerList/UserPrefCareers';
 import './App.css';
 
 function App() {
-  /*const [skills, setSkills] = useState([
-    { id: 1, name: 'React' },
-    { id: 2, name: 'Node.js' },
-    { id: 3, name: 'Python' },
-    { id: 4, name: 'SQL' },
-    { id: 5, name: 'Django' },
-    { id: 6, name: 'AWS' },
-    { id: 7, name: 'Docker' },
-  ]);*/
   
-  const [skills, setSkills] = useState([]);
+  const [recentPosting, setRecentPosting] = useState([]);
 
   useEffect(() => {
-    fetch('/api/skills/')
+    fetch('api/recent-job-postings/')
       .then(response => response.json())
-      .then(data => setSkills(data))
-      .catch(error => console.log(error));
-  }, []); 
+      .then(data => {
+        setRecentPosting(data);
+        console.log('Fetched job postings:', data);
+        data.forEach(post => {
+          console.log('Job posting:', post);
+          console.log('Job title:', post.title);
+          console.log('Company name:', post.company_name);
+        });
+      })
+      .catch(error => console.log('Error fetching data:', error));
+  }, []);
 
   return (
-    <div>
-       <h1>All Skills</h1>
-       <ul>
-         {skills.map(skill => (
-           <li key={skill.id}>{skill.name}</li>
-         ))}
-       </ul>
-     </div>
+    <div className="App">
+      <h1>Recent Job Postings</h1>
+      <div className="job-postings-list">
+        {recentPosting.length > 0 ? (
+          recentPosting.map(post => (
+            <div key={post.job_id} className="job-posting-card">
+              <h2>{post.job_id}</h2>
+              <p><strong>Company:</strong> {post.company}</p>
+            </div>
+          ))
+        ) : (
+          <p>Loading recent job postings...</p>
+        )}
+      </div>
+    </div>
   );
 }
 
