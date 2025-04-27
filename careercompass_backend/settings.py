@@ -26,7 +26,9 @@ SECRET_KEY = 'django-insecure-emkbz+=i0nii0gf(b-xc(z16tbdaw=^o5gnq_!!nt#!r_e$p%=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [    '127.0.0.1',
+    'localhost',
+    'testserver',]
 
 
 # Application definition
@@ -39,6 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app',
+    'rest_framework',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
@@ -49,6 +53,17 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+]
+
+REST_FRAMEWORK = {
+'DEFAULT_PERMISSION_CLASSES': [
+'rest_framework.permissions.AllowAny',
+]
+}
+
+CORS_ALLOWED_ORIGINS = [
+'http://localhost:3000' # using 3000 port to run the frontend server
 ]
 
 ROOT_URLCONF = 'careercompass_backend.urls'
