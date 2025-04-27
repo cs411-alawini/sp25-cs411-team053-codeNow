@@ -1,4 +1,5 @@
 from django.urls import path, include
+from django.contrib import admin
 from . import views
 urlpatterns = [
     #path('jobs/', views.get_jobs, name='get_jobs'),  # Fetch job listings
@@ -11,6 +12,6 @@ urlpatterns = [
 
 
 urlpatterns = [
-    # ... your other URL patterns ...
-    path('', include('careercompass_backend.urls')),
+    path('admin/',  admin.site.urls),
+    path('api/',    include('app.urls')),  
 ]
