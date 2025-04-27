@@ -98,6 +98,68 @@ def _get_or_create_location_id(city, country):
         return cur.lastrowid
 
 
+
+@csrf_exempt
+def deactivate_inactive_companies(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute("START TRANSACTION;")
+
+            cur.execute("""
+                UPDATE app_company
+                JOIN (
+                    SELECT c.id
+                    FROM app_company c
+                    LEFT JOIN app_jobposting jp ON c.id = jp.company_id
+                    WHERE jp.id IS NULL 
+                       OR jp.posting_date < DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+                ) AS SubqueryTable
+                ON app_company.id = SubqueryTable.id
+                SET app_company.profile = 'Inactive';
+            """)
+
+            cur.execute("""
+                DELETE FROM app_jobposting
+                WHERE company_id IN (
+                    SELECT id FROM app_company WHERE profile = 'Inactive'
+                );
+            """)
+
+            cur.execute("COMMIT;")
+
+    except DatabaseError:
+        cur.execute("ROLLBACK;")
+        return JsonResponse({'error': 'Database error during deactivation'}, status=400)
+
+    return JsonResponse({'status': 'Inactive companies deactivated and jobs deleted'}, status=200)
+
+
+@csrf_exempt
+def get_active_company_jobs_above_average(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        company_id = data.get('company_id')
+        if not company_id:
+            return JsonResponse({'error': 'Missing company_id'}, status=400)
+
+        with connection.cursor() as cur:
+            cur.callproc('GetActiveCompanyJobsAboveAverage', [company_id])
+            results = cur.fetchall()
+            columns = [col[0] for col in cur.description]
+            job_list = [dict(zip(columns, row)) for row in results]
+
+    except DatabaseError:
+        return JsonResponse({'error': 'Database error during procedure call'}, status=400)
+
+    return JsonResponse({'jobs': job_list}, status=200)
+
+
 @csrf_exempt
 def create_job_posting(request):
     if request.method != 'POST':

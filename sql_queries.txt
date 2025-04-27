@@ -77,3 +77,66 @@ WHERE NOT EXISTS (
       AND jp.posting_date >= (CURRENT_DATE - INTERVAL '30 DAY') //this may error out
 
 );
+
+//Transaction(Deactivate Inactive companies and Delete Jobs)
+START TRANSACTION;
+
+UPDATE app_company
+JOIN (
+    SELECT c.id
+    FROM app_company c
+    LEFT JOIN app_jobposting jp ON c.id = jp.company_id
+    WHERE jp.id IS NULL 
+       OR jp.posting_date < DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+) AS SubqueryTable
+ON app_company.id = SubqueryTable.id
+SET app_company.profile = 'Inactive';
+
+DELETE FROM app_jobposting
+WHERE company_id IN (
+    SELECT id FROM app_company WHERE profile = 'Inactive'
+);
+
+COMMIT;
+
+//Stored_procedure(GetActiveCompanyJobsAboveAverage)
+DELIMITER //
+
+CREATE PROCEDURE GetActiveCompanyJobsAboveAverage(IN comp_id INT)
+BEGIN
+    IF (
+        SELECT COUNT(*) FROM app_jobposting WHERE company_id = comp_id
+    ) > (
+        SELECT AVG(job_count)
+        FROM (
+            SELECT COUNT(*) AS job_count
+            FROM app_jobposting
+            GROUP BY company_id
+        ) AS SubqueryTable
+    )
+    THEN
+        SELECT jp.id AS jobposting_id, jp.title, jp.posting_date
+        FROM app_jobposting jp
+        WHERE jp.company_id = comp_id;
+    ELSE
+        SELECT 'Company does not post more jobs than average' AS message;
+    END IF;
+END //
+
+DELIMITER ;
+
+
+//Trigger (Insert a New JobPosting)
+DELIMITER //
+
+CREATE TRIGGER UpdateCompanyTotalJobs
+AFTER INSERT ON app_jobposting
+FOR EACH ROW
+BEGIN
+    UPDATE app_company
+    SET total_jobs = total_jobs + 1
+    WHERE id = NEW.company_id;
+END //
+
+DELIMITER ;
+
