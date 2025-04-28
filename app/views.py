@@ -114,8 +114,7 @@ def deactivate_inactive_companies(request):
                     SELECT c.id
                     FROM app_company c
                     LEFT JOIN app_jobposting jp ON c.id = jp.company_id
-                    WHERE jp.id IS NULL 
-                       OR jp.posting_date < DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+                    WHERE jp.id IS NULL
                 ) AS SubqueryTable
                 ON app_company.id = SubqueryTable.id
                 SET app_company.profile = 'Inactive';
