@@ -18,7 +18,6 @@ from .models import Skill, JobPortal, JobPosting
 from .serializers import (
     SkillSerializer,
     JobPortalSerializer,
-    JobPostingSerializer,
 )
 
 
@@ -59,7 +58,7 @@ def recent_job_postings(request):
     except DatabaseError:
         return JsonResponse({'error': 'Database error during query'}, status=400)
 
-    return JsonResponse({'jobs': job_list}, status=200)
+    return JsonResponse(job_list, safe = False, status=200)
 
 
 def _generate_unique_job_id():
