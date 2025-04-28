@@ -35,16 +35,31 @@ class JobPortalListView(generics.ListAPIView):
     serializer_class = JobPortalSerializer
 
 
-class RecentJobPostingsView(generics.ListAPIView):
-    serializer_class = JobPostingSerializer
+@csrf_exempt
+def recent_job_postings(request):
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-    def get_queryset(self):
-        cutoff = timezone.now().date() - timedelta(days=30)
-        return (
-            JobPosting.objects
-            .filter(posting_date__gte=cutoff)
-            .order_by('-posting_date')[:5]
-        )
+    cutoff_date = timezone.now().date() - timedelta(days=30)
+
+    try:
+        with connection.cursor() as cur:
+            query = """
+                SELECT *
+                FROM app_jobposting
+                WHERE posting_date >= %s
+                ORDER BY posting_date DESC
+                LIMIT 5
+            """
+            cur.execute(query, [cutoff_date])
+            results = cur.fetchall()
+            columns = [col[0] for col in cur.description]
+            job_list = [dict(zip(columns, row)) for row in results]
+
+    except DatabaseError:
+        return JsonResponse({'error': 'Database error during query'}, status=400)
+
+    return JsonResponse({'jobs': job_list}, status=200)
 
 
 def _generate_unique_job_id():
