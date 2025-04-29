@@ -21,7 +21,8 @@ from app import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/skills/', views.SkillListView.as_view(), name='skill-list'),
-    path('api/recent-job-postings/', views.recent_job_postings, name='recent-job-postings'),
     path('api/jobportals/', views.JobPortalListView.as_view(), name='jobportal-list'),
+    path('api/recent-job-postings/', views.recent_job_postings, name='recent-job-postings'),
     path('api/jobposting/create/', views.create_job_posting),
+    path('api/search_jobs/', views.search_jobs, name='search-jobs'), 
 ]

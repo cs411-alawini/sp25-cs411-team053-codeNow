@@ -8,6 +8,7 @@ from django.db import connection, DatabaseError
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Q
 
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
@@ -238,3 +239,27 @@ def create_job_posting(request):
         return JsonResponse({'error': 'Database error on insert'}, status=400)
 
     return JsonResponse({'created_id': new_pk, 'job_id': job_id}, status=201)
+
+
+@csrf_exempt
+def search_jobs(request):
+    if request.method == 'GET':
+        keyword = request.GET.get('keyword', '')
+        if not keyword:
+            return JsonResponse({'error': 'Missing keyword'}, status=400)
+
+        matched_jobs = JobPosting.objects.filter(
+            Q(title__icontains=keyword)
+        ).select_related('company')
+
+        results = []
+        for job in matched_jobs:
+            results.append({
+                'id': job.id,
+                'title': job.title,
+                'company_name': job.company.name if job.company else 'Unknown'
+            })
+
+        return JsonResponse(results, safe=False)
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
