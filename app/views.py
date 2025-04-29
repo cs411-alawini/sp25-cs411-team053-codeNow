@@ -247,23 +247,23 @@ def create_job_posting(request):
 
 @csrf_exempt
 def search_jobs(request):
-    if request.method == 'GET':
-        keyword = request.GET.get('keyword', '')
-        if not keyword:
-            return JsonResponse({'error': 'Missing keyword'}, status=400)
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-        matched_jobs = JobPosting.objects.filter(
-            Q(title__icontains=keyword)
-        ).select_related('company')
+    keyword = request.GET.get('keyword', '').strip()
+    if not keyword:
+        return JsonResponse({'error': 'Missing keyword'}, status=400)
 
-        results = []
-        for job in matched_jobs:
-            results.append({
-                'id': job.id,
-                'title': job.title,
-                'company_name': job.company.name if job.company else 'Unknown'
-            })
+    pattern = f"%{keyword}%"
+    with connection.cursor() as cur:
+        cur.execute("""
+            SELECT jp.id, jp.title, c.name AS company_name
+            FROM app_jobposting jp
+            JOIN app_company c ON jp.company_id = c.id
+            WHERE jp.title LIKE %s
+        """, [pattern])
+        rows    = cur.fetchall()
+        cols    = [col[0] for col in cur.description]
+        results = [dict(zip(cols, row)) for row in rows]
 
-        return JsonResponse(results, safe=False)
-
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
+    return JsonResponse(results, safe=False)
