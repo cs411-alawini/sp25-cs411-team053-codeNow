@@ -26,15 +26,32 @@ from .serializers import (
 
 geolocator = Nominatim(user_agent="careercompass")
 
+@csrf_exempt
+def list_skills(request):
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-class SkillListView(generics.ListAPIView):
-    queryset = Skill.objects.all()
-    serializer_class = SkillSerializer
+    with connection.cursor() as cur:
+        cur.execute("SELECT id, name FROM app_skill")
+        rows = cur.fetchall()
+        cols = [c[0] for c in cur.description]
+        data = [dict(zip(cols, r)) for r in rows]
+
+    return JsonResponse(data, safe=False, status=200)
 
 
-class JobPortalListView(generics.ListAPIView):
-    queryset = JobPortal.objects.all()
-    serializer_class = JobPortalSerializer
+@csrf_exempt
+def list_jobportals(request):
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    with connection.cursor() as cur:
+        cur.execute("SELECT id, name FROM app_jobportal")
+        rows = cur.fetchall()
+        cols = [c[0] for c in cur.description]
+        data = [dict(zip(cols, r)) for r in rows]
+
+    return JsonResponse(data, safe=False, status=200)
 
 
 @csrf_exempt
