@@ -10,6 +10,7 @@ import './App.css';
 function App() {
   
   const [recentPosting, setRecentPosting] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
   const handleCreated = (newId) => {
@@ -41,7 +42,7 @@ function App() {
   return (
     <div className="App">
       <Header />
-      <SearchBar />
+      <SearchBar setSearchResults={setSearchResults} />
 
       {/* ➤ Toggle “New Job” form */}
       <button
@@ -68,8 +69,20 @@ function App() {
           <p>Loading recent job postings...</p>
         )}
       </div>
+      {searchResults.length > 0 && (
+      <div className="search-results">
+        <h1>Search Results</h1>
+        {searchResults.map((post, index) => (
+          <div key={index} className="job-posting-card">
+            <h2>{post.title}</h2>
+            <p><strong>Company:</strong> {post.company_name || 'Unknown'}</p>
+          </div>
+        ))}
+      </div>
+    )}
     </div>
   );
+  
 }
 
 export default App;
