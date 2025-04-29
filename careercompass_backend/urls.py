@@ -25,7 +25,7 @@ urlpatterns = [
     path('api/recent-job-postings/', views.recent_job_postings, name='recent-job-postings'),
     path('api/jobposting/create/', views.create_job_posting),
     path('api/search_jobs/', views.search_jobs, name='search-jobs'), 
-    path('api/jobposting/<int:pk>/',    views.get_job_detail, name='job-detail'),
+    path('api/jobposting/<int:id>/', views.job_posting_detail),
     path('api/company/<int:company_id>/jobs/',
          views.get_company_jobs,         name='company-jobs'),
 ]

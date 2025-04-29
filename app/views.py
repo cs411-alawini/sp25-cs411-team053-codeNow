@@ -17,13 +17,6 @@ from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
 from rest_framework import generics
 
-from .models import Skill, JobPortal, JobPosting
-from .serializers import (
-    SkillSerializer,
-    JobPortalSerializer,
-)
-
-
 geolocator = Nominatim(user_agent="careercompass")
 
 @csrf_exempt
@@ -144,12 +137,12 @@ def _get_or_create_location_id(city, country):
 
 
 
-@csrf_exempt
-def deactivate_inactive_companies(request):
-    if request.method != 'POST':
+#@csrf_exempt
+#def deactivate_inactive_companies(request):
+#    if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-    try:
+#    try:
         with connection.cursor() as cur:
             cur.execute("START TRANSACTION;")
 
@@ -174,11 +167,11 @@ def deactivate_inactive_companies(request):
 
             cur.execute("COMMIT;")
 
-    except DatabaseError:
+#    except DatabaseError:
         cur.execute("ROLLBACK;")
         return JsonResponse({'error': 'Database error during deactivation'}, status=400)
 
-    return JsonResponse({'status': 'Inactive companies deactivated and jobs deleted'}, status=200)
+#    return JsonResponse({'status': 'Inactive companies deactivated and jobs deleted'}, status=200)
 
 
 @csrf_exempt
@@ -301,61 +294,100 @@ def search_jobs(request):
 
 
 @csrf_exempt
-def get_job_detail(request, pk):
-    if request.method != 'GET':
-        return JsonResponse({'error':'Method not allowed'}, status=405)
+def job_posting_detail(request, id):
+    # ─── UPDATE ───
+    if request.method == 'PUT':
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error':'Invalid JSON'}, status=400)
 
-    try:
-        with connection.cursor() as cur:
-            # fetch main job row + company + location + portal
-            cur.execute("""
-                SELECT
-                  jp.id,
-                  jp.job_id,
-                  jp.title,
-                  jp.role,
-                  jp.description,
-                  jp.responsibilities,
-                  jp.qualifications,
-                  jp.experience,
-                  jp.work_type,
-                  jp.salary_range,
-                  jp.posting_date,
-                  jp.preference,
-                  jp.benefits,
-                  c.id   AS company_id,
-                  c.name AS company_name,
-                  l.city AS location_city,
-                  l.country AS location_country,
-                  jp.job_portal_id
-                FROM app_jobposting jp
-                JOIN app_company  c ON jp.company_id = c.id
-                JOIN app_location l ON jp.location_id = l.id
-                WHERE jp.id = %s
-            """, [pk])
-            row = cur.fetchone()
-            if not row:
-                return JsonResponse({'error':'Not found'}, status=404)
+        params = [
+            data.get('title',''),
+            data.get('role',''),
+            data.get('work_type',''),
+            data.get('salary_range',''),
+            data.get('description',''),
+            data.get('responsibilities',''),
+            data.get('qualifications',''),
+            data.get('experience',''),
+            data.get('preference',''),
+            data.get('benefits',''),
+            id
+        ]
+        try:
+            with connection.cursor() as cur:
+                cur.execute("""
+                    UPDATE app_jobposting
+                       SET title=%s,
+                           role=%s,
+                           work_type=%s,
+                           salary_range=%s,
+                           description=%s,
+                           responsibilities=%s,
+                           qualifications=%s,
+                           experience=%s,
+                           preference=%s,
+                           benefits=%s
+                     WHERE id=%s
+                """, params)
+                if cur.rowcount == 0:
+                    return JsonResponse({'error':'Not found'}, status=404)
+        except DatabaseError as e:
+            return JsonResponse({'error': str(e)}, status=400)
 
-            cols = [c[0] for c in cur.description]
-            job = dict(zip(cols, row))
+        # return the updated record if you like, or just 200:
+        return JsonResponse({'status':'ok'}, status=200)
 
-            # fetch skills
-            cur.execute("""
-                SELECT s.id, s.name
-                  FROM app_skill s
-                  JOIN app_jobposting_skills js
-                    ON s.id = js.skill_id
-                 WHERE js.jobposting_id = %s
-            """, [pk])
-            job['skills'] = [
-                {'id': r[0], 'name': r[1]} for r in cur.fetchall()
-            ]
+    # ─── DELETE ───
+    if request.method == 'DELETE':
+        try:
+            with connection.cursor() as cur:
+                cur.execute(
+                  "DELETE FROM app_jobposting_skills WHERE jobposting_id = %s", [id]
+                )
+                cur.execute(
+                  "DELETE FROM app_jobposting WHERE id = %s", [id]
+                )
+        except DatabaseError as e:
+            return JsonResponse({'error': str(e)}, status=400)
+        return JsonResponse({}, status=204)
 
-    except DatabaseError:
-        return JsonResponse({'error':'Database error'}, status=500)
+    # ─── GET ───
+    if request.method == 'GET':
+        try:
+            with connection.cursor() as cur:
+                cur.execute("""
+                    SELECT jp.id, jp.job_id, jp.title, jp.role, jp.description,
+                           jp.responsibilities, jp.qualifications, jp.experience,
+                           jp.work_type, jp.salary_range, jp.posting_date,
+                           jp.preference, jp.benefits,
+                           c.id   AS company_id, c.name AS company_name,
+                           l.city AS location_city, l.country AS location_country
+                      FROM app_jobposting jp
+                      JOIN app_company  c ON jp.company_id  = c.id
+                      JOIN app_location l ON jp.location_id = l.id
+                     WHERE jp.id = %s
+                """, [id])
+                row = cur.fetchone()
+                if not row:
+                    return JsonResponse({'error':'Not found'}, status=404)
+                cols = [col[0] for col in cur.description]
+                job  = dict(zip(cols,row))
 
-    return JsonResponse(job, status=200)
+                cur.execute("""
+                    SELECT s.id, s.name
+                      FROM app_jobposting_skills js
+                      JOIN app_skill s ON js.skill_id = s.id
+                     WHERE js.jobposting_id = %s
+                """, [id])
+                job['skills'] = [{'id':r[0],'name':r[1]} for r in cur.fetchall()]
+        except DatabaseError as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+        return JsonResponse(job, status=200)
+
+    return JsonResponse({'error':'Method not allowed'}, status=405)
 
 @csrf_exempt
 def get_company_jobs(request, company_id):
@@ -377,4 +409,5 @@ def get_company_jobs(request, company_id):
         return JsonResponse({'error':'Database error'}, status=500)
 
     return JsonResponse(jobs, safe=False, status=200)
+
 
