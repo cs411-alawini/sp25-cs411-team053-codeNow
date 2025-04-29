@@ -4,11 +4,6 @@ function Header() {
   return (
     <header style={styles.header}>
       <h1 style={styles.title}>CareerCompass</h1>
-      <input
-        type="text"
-        placeholder="Search bar"
-        style={styles.search}
-      />
     </header>
   );
 }

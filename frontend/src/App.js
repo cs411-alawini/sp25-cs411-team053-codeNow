@@ -1,83 +1,67 @@
+// src/App.js
 import React, { useEffect, useState } from 'react';
-import Header from './components/Header';
-import SearchBar from './components/SearchBar';
-import Top5Careers from './components/CareerList/Top5Careers';
-import Bottom3Careers from './components/CareerList/Bottom3Careers';
-import UserPrefCareers from './components/CareerList/UserPrefCareers';
-import CreateJobForm from './components/CreateJobForm.js'; 
+import { Routes, Route }            from 'react-router-dom';
+import Home                         from './components/Home';
+import JobDetail                    from './components/JobDetail';
+import CompanyJobs                  from './components/CompanyJobs';
 import './App.css';
 
 function App() {
-  
-  const [recentPosting, setRecentPosting] = useState([]);
-  const [searchResults, setSearchResults] = useState([]);
-  const [showForm, setShowForm] = useState(false);
+  const [recentPosting, setRecentPosting]     = useState([]);
+  const [searchResults, setSearchResults]     = useState(null);  // <— null = no search yet
+  const [showForm, setShowForm]               = useState(false);
 
-  const handleCreated = (newId) => {
-    // 1. hide the form
-    setShowForm(false);
-
-    // 2. re-fetch the list so it includes the newly created job
+  // fetch recent on mount & after create
+  const fetchRecent = () => {
     fetch('/api/recent-job-postings/')
       .then(r => r.json())
-      .then(data => setRecentPosting(data))
-      .catch(err => console.error(err));
+      .then(setRecentPosting)
+      .catch(console.error);
+  };
+  useEffect(fetchRecent, []);
+
+  const handleCreated = () => {
+    setShowForm(false);
+    fetchRecent();
   };
 
-  useEffect(() => {
-    fetch('/api/recent-job-postings/')
-      .then(response => response.json())
-      .then(data => {
-        setRecentPosting(data);
-        console.log('Fetched job postings:', data);
+  // ← new search handler:
+  const handleSearch = term => {
+    if (!term) {
+      setSearchResults(null);   // clear search, go back to recents
+      return;
+    }
+    fetch(`/api/search_jobs/?keyword=${encodeURIComponent(term)}`)
+      .then(r => {
+        if (!r.ok) throw new Error(r.statusText);
+        return r.json();
       })
-      .catch(error => console.log('Error fetching data:', error));
-  }, []);
+      .then(results => setSearchResults(results))
+      .catch(err => {
+        console.error(err);
+        setSearchResults([]); // no matches or error
+      });
+  };
 
   return (
-    <div className="App">
-      <Header />
-      <SearchBar setSearchResults={setSearchResults} />
-
-      {/* ➤ Toggle “New Job” form */}
-      <button
-        className="new-job-btn"
-        onClick={() => setShowForm(f => !f)}
-      >
-        {showForm ? '✖️ Cancel' : '➕ Create Job Posting'}
-      </button>
-
-      {/* ➤ Conditionally render your form */}
-      {showForm && <CreateJobForm onSuccess={handleCreated}/>}
-
-
-      <h1>Recent Job Postings</h1>
-      <div className="job-postings-list">
-        {recentPosting.length > 0 ? (
-          recentPosting.map(post => (
-            <div key={post.title} className="job-posting-card">
-              <h2>{post.title}</h2>
-              <p><strong>Company:</strong> {post.company_name}</p>
-            </div>
-          ))
-        ) : (
-          <p>Loading recent job postings...</p>
-        )}
-      </div>
-      {searchResults.length > 0 && (
-      <div className="search-results">
-        <h1>Search Results</h1>
-        {searchResults.map((post, index) => (
-          <div key={index} className="job-posting-card">
-            <h2>{post.title}</h2>
-            <p><strong>Company:</strong> {post.company_name || 'Unknown'}</p>
-          </div>
-        ))}
-      </div>
-    )}
-    </div>
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <Home
+            recentPosting={recentPosting}
+            searchResults={searchResults}
+            onSearch={handleSearch}       // pass search handler
+            showForm={showForm}
+            setShowForm={setShowForm}
+            onCreated={handleCreated}
+          />
+        }
+      />
+      <Route path="/job/:id" element={<JobDetail />} />
+      <Route path="/company/:companyId" element={<CompanyJobs />} />
+    </Routes>
   );
-  
 }
 
 export default App;

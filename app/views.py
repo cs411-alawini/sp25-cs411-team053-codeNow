@@ -64,8 +64,19 @@ def recent_job_postings(request):
     try:
         with connection.cursor() as cur:
             query = """
-                SELECT *
-                FROM app_jobposting
+                SELECT
+                  jp.id,
+                  jp.job_id,
+                  jp.title,
+                  jp.role,
+                  jp.work_type,
+                  jp.salary_range,
+                  jp.posting_date,
+                  c.id   AS company_id,
+                  c.name AS company_name
+                FROM app_jobposting jp
+                  JOIN app_company c
+                    ON jp.company_id = c.id
                 WHERE posting_date >= %s
                 ORDER BY posting_date DESC
                 LIMIT 5
@@ -274,9 +285,12 @@ def search_jobs(request):
     pattern = f"%{keyword}%"
     with connection.cursor() as cur:
         cur.execute("""
-            SELECT jp.id, jp.title, c.name AS company_name
+            SELECT jp.id,
+                jp.title,
+                jp.company_id,
+                c.name   AS company_name
             FROM app_jobposting jp
-            JOIN app_company c ON jp.company_id = c.id
+            JOIN app_company  c ON jp.company_id = c.id
             WHERE jp.title LIKE %s
         """, [pattern])
         rows    = cur.fetchall()
@@ -284,3 +298,83 @@ def search_jobs(request):
         results = [dict(zip(cols, row)) for row in rows]
 
     return JsonResponse(results, safe=False)
+
+
+@csrf_exempt
+def get_job_detail(request, pk):
+    if request.method != 'GET':
+        return JsonResponse({'error':'Method not allowed'}, status=405)
+
+    try:
+        with connection.cursor() as cur:
+            # fetch main job row + company + location + portal
+            cur.execute("""
+                SELECT
+                  jp.id,
+                  jp.job_id,
+                  jp.title,
+                  jp.role,
+                  jp.description,
+                  jp.responsibilities,
+                  jp.qualifications,
+                  jp.experience,
+                  jp.work_type,
+                  jp.salary_range,
+                  jp.posting_date,
+                  jp.preference,
+                  jp.benefits,
+                  c.id   AS company_id,
+                  c.name AS company_name,
+                  l.city AS location_city,
+                  l.country AS location_country,
+                  jp.job_portal_id
+                FROM app_jobposting jp
+                JOIN app_company  c ON jp.company_id = c.id
+                JOIN app_location l ON jp.location_id = l.id
+                WHERE jp.id = %s
+            """, [pk])
+            row = cur.fetchone()
+            if not row:
+                return JsonResponse({'error':'Not found'}, status=404)
+
+            cols = [c[0] for c in cur.description]
+            job = dict(zip(cols, row))
+
+            # fetch skills
+            cur.execute("""
+                SELECT s.id, s.name
+                  FROM app_skill s
+                  JOIN app_jobposting_skills js
+                    ON s.id = js.skill_id
+                 WHERE js.jobposting_id = %s
+            """, [pk])
+            job['skills'] = [
+                {'id': r[0], 'name': r[1]} for r in cur.fetchall()
+            ]
+
+    except DatabaseError:
+        return JsonResponse({'error':'Database error'}, status=500)
+
+    return JsonResponse(job, status=200)
+
+@csrf_exempt
+def get_company_jobs(request, company_id):
+    if request.method != 'GET':
+        return JsonResponse({'error':'Method not allowed'}, status=405)
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute("""
+                SELECT id, job_id, title, posting_date
+                  FROM app_jobposting
+                 WHERE company_id = %s
+                 ORDER BY posting_date DESC
+                 LIMIT 10
+            """, [company_id])
+            cols = [c[0] for c in cur.description]
+            jobs = [dict(zip(cols, row)) for row in cur.fetchall()]
+    except DatabaseError:
+        return JsonResponse({'error':'Database error'}, status=500)
+
+    return JsonResponse(jobs, safe=False, status=200)
+
