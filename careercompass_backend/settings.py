@@ -16,9 +16,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 from decouple import config
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-
-print("👉 Loaded DB_NAME:", config("DB_NAME"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/

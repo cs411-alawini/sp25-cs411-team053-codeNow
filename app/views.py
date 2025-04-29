@@ -235,7 +235,7 @@ def search_jobs(request):
             return JsonResponse({'error': 'Missing keyword'}, status=400)
 
         matched_jobs = JobPosting.objects.filter(
-            Q(title__icontains=keyword) | Q(role__icontains=keyword) | Q(description__icontains=keyword)
+            Q(title__icontains=keyword)
         ).select_related('company')
 
         results = []
