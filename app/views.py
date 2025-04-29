@@ -2,6 +2,8 @@
 
 import json
 import random
+import logging
+logger = logging.getLogger(__name__)
 from datetime import timedelta
 
 from django.db import connection, DatabaseError
@@ -235,7 +237,9 @@ def create_job_posting(request):
                     "INSERT INTO app_jobposting_skills (jobposting_id, skill_id) VALUES (%s, %s)",
                     [new_pk, skill_id],
                 )
-    except DatabaseError:
+    except DatabaseError as e:
+        logger.error("Job insert failed: %s", e)
+
         return JsonResponse({'error': 'Database error on insert'}, status=400)
 
     return JsonResponse({'created_id': new_pk, 'job_id': job_id}, status=201)
