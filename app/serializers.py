@@ -9,7 +9,7 @@ class SkillSerializer(serializers.ModelSerializer):
 class JobPostingSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobPosting
-        fields = ['job_id', 'title', 'company', 'posting_date']
+        fields = ['job_id', 'title', 'company_name', 'posting_date']
 
 class JobPortalSerializer(serializers.ModelSerializer):
     class Meta:

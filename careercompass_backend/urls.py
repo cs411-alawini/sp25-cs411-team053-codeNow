@@ -22,7 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/skills/', views.SkillListView.as_view(), name='skill-list'),
     path('api/jobportals/', views.JobPortalListView.as_view(), name='jobportal-list'),
-    path('api/recent-job-postings/', views.RecentJobPostingsView.as_view(), name='recent-job-postings'),
-    path('api/create-job/', views.create_job_posting, name='create-job-posting'),
+    path('api/recent-job-postings/', views.recent_job_postings, name='recent-job-postings'),
+    path('api/jobposting/create/', views.create_job_posting),
     path('api/search_jobs/', views.search_jobs, name='search-jobs'), 
 ]

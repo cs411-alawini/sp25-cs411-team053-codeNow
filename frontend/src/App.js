@@ -30,11 +30,6 @@ function App() {
       .then(data => {
         setRecentPosting(data);
         console.log('Fetched job postings:', data);
-        data.forEach(post => {
-          console.log('Job posting:', post);
-          console.log('Job title:', post.title);
-          console.log('Company name:', post.company_name);
-        });
       })
       .catch(error => console.log('Error fetching data:', error));
   }, []);
@@ -60,9 +55,9 @@ function App() {
       <div className="job-postings-list">
         {recentPosting.length > 0 ? (
           recentPosting.map(post => (
-            <div key={post.job_id} className="job-posting-card">
-              <h2>{post.job_id}</h2>
-              <p><strong>Company:</strong> {post.company}</p>
+            <div key={post.title} className="job-posting-card">
+              <h2>{post.title}</h2>
+              <p><strong>Company:</strong> {post.company_name}</p>
             </div>
           ))
         ) : (
